@@ -1,0 +1,7 @@
+-r base.txt
+
+# for servers on production
+uwsgi==2.0.21
+#gunicorn==20.1.0
+# for logging and monitoring
+sentry-sdk==1.23.1
