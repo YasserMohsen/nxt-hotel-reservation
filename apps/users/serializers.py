@@ -1,18 +1,12 @@
 from django.contrib.auth import get_user_model, models
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from rest_framework import serializers
 from .constants import GUEST_USER
 
 
 User = get_user_model()
-
-
-class RoleSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        fields = ('name',)
-        model = models.Group
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -41,6 +35,17 @@ class UserSerializer(serializers.ModelSerializer):
             user.delete()
             raise serializers.ValidationError({'password': err.messages})
         return user
+    
+
+    def update(self, instance, validated_data):
+        try:
+            with transaction.atomic():
+                updated_instance = super().update(instance, validated_data)
+                if validated_data.get('password'):
+                    validate_password(password=validated_data['password'], user=updated_instance)
+        except ValidationError as err:
+            raise serializers.ValidationError({'password': err.messages})
+        return updated_instance
     
 
 class RegistrationSerializer(serializers.ModelSerializer):

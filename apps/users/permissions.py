@@ -4,8 +4,6 @@ from .constants import ADMIN_USER, AGENT_USER, GUEST_USER
 
 
 def _is_in_group(user, group_name):
-    print(user)
-    print(group_name)
     """
     Takes a user and a group name, and returns `True` if the user is in that group.
     """
@@ -18,15 +16,19 @@ def _has_group_permission(user, required_groups):
     return any([_is_in_group(user, group_name) for group_name in required_groups])
 
 
-class IsOwnerOrAdminRole(BasePermission):
+class IsOwnerOrOtherRoles(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        has_group_permission = _has_group_permission(request.user, self.required_groups)
+        return obj.user == request.user or has_group_permission
+    
+class IsOwnerOrAdminRole(IsOwnerOrOtherRoles):
     # group_name for admin users
     required_groups = [ADMIN_USER]
 
-    def has_object_permission(self, request, view, obj):
-        if self.required_groups is None:
-            return False
-        has_group_permission = _has_group_permission(request.user, self.required_groups)
-        return obj == request.user or has_group_permission
+
+class IsOwnerOrAdminOrAgentRole(IsOwnerOrOtherRoles):
+    # group_name for admin users
+    required_groups = [ADMIN_USER, AGENT_USER]
 
 
 class RoleBasePermission(BasePermission):
@@ -49,3 +51,5 @@ class IsAgentRole(RoleBasePermission):
 
 class IsGuestRole(RoleBasePermission):
     required_groups = [GUEST_USER]
+
+        
