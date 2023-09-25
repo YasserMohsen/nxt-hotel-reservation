@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .permissions import IsAdminRole, IsOwnerOrAdminRole, IsAgentRole
+from .permissions import IsAdminRole, IsAgentRole, IsOwnerOrHigherRole
 from .serializers import UserSerializer, RegistrationSerializer
 
 
@@ -20,11 +20,11 @@ class UserViewSet(ModelViewSet):
         elif self.action == 'list':
             permission_classes = [IsAdminRole|IsAgentRole]
         elif self.action == 'retrieve':
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsOwnerOrHigherRole]
         elif self.action == 'update' or self.action == 'partial_update':
             permission_classes = [IsAdminRole]
         elif self.action == 'destroy':
-            permission_classes = [IsOwnerOrAdminRole]
+            permission_classes = [IsAdminRole]
         return [permission() for permission in permission_classes]
     
 

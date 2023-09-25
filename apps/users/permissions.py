@@ -16,6 +16,14 @@ def _has_group_permission(user, required_groups):
     return any([_is_in_group(user, group_name) for group_name in required_groups])
 
 
+class IsOwnerOrHigherRole(BasePermission):
+    required_groups = [ADMIN_USER, AGENT_USER]
+    
+    def has_object_permission(self, request, view, obj):
+        has_group_permission = _has_group_permission(request.user, self.required_groups)
+        return obj == request.user or has_group_permission
+    
+
 class IsOwnerOrOtherRoles(BasePermission):
     def has_object_permission(self, request, view, obj):
         has_group_permission = _has_group_permission(request.user, self.required_groups)
